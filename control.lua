@@ -41,7 +41,7 @@ local function debug(...)
 end
 
 local function getID(entity)
-    return entity.is_player() and (-entity.index - 1) or entity.unit_number
+    return entity.is_player() and entity.index and (-entity.index - 1) or entity.unit_number
 end
 
 local function getPlayer(event)
@@ -270,24 +270,30 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, loadSettings)
 --[[ Events ]]
 
 script.on_event(defines.events.on_tick, function(event)
-    local tick = event.tick
-    for id, tracker in pairs(trackers) do
-        -- Perform a minor update.
-        -- All we do is draw power from the shadow.
-        tickTracker(tracker)
+	local tick = event.tick
+	for id, tracker in pairs(trackers) do
+		if tracker.entity.valid then
+		-- Perform a minor update.
+		-- All we do is draw power from the shadow.
+		tickTracker(tracker)
 
-        if id % shadowRate == tick % shadowRate then
-            updateShadow(tracker)
-        end
-        
-        -- Perform a full update based on the ID of the tracker.
-        -- We do this instead of 'on_nth_tick(60, ...)' because this way we
-        -- spread out the updates much better.
-        if id % updateRate == tick % updateRate then
-            updateTracker(tracker)
-        end
+			if id % shadowRate == tick % shadowRate then
+				updateShadow(tracker)
+			end
 
-    end
+			-- Perform a full update based on the ID of the tracker.
+			-- We do this instead of 'on_nth_tick(60, ...)' because this way we
+			-- spread out the updates much better.
+			if id % updateRate == tick % updateRate then
+				updateTracker(tracker)
+			end
+		else
+			if tracker.shadow and tracker.shadow.valid then
+				tracker.shadow.destroy()
+			end
+			trackers[id] = nil 
+		end
+	end
 end)
 
 -- Player equips/unequips armor
