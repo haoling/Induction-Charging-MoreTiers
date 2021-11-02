@@ -453,3 +453,13 @@ script.on_event(defines.events.script_raised_built, function(event)
         createTracker(entity, grid)
     end
 end)
+
+local function on_entity(entity)
+    local grid = getGrid(entity)
+    if isGridRelevant(grid) then
+        createTracker(entity, grid)
+    end
+end
+
+remote.add_interface("AAI-InductionChargung_on_entity_deployed", { on_entity_deployed = function(data) return on_entity(data.entity) end})
+remote.add_interface("AAI-InductionChargung_on_entity_replaced", { on_entity_replaced = function(data) return on_entity(data.new_entity) end})
